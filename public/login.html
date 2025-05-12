@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>주식투자 프로젝트 - 로그인</title>
+    <link rel="icon" href="https://www.google.com/images/product/sheets_32dp.png">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f5f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .login-container {
+        max-width: 400px;
+        width: 100%;
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+      h1 {
+        color: #4285f4;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 16px;
+      }
+      .button {
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+      }
+      .button:hover {
+        background-color: #3b78e7;
+      }
+      .error-message {
+        color: #d93025;
+        margin-top: 20px;
+        text-align: center;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <h1>주식투자 프로젝트</h1>
+      <div class="form-group">
+        <label for="email">이메일</label>
+        <input type="email" id="email" placeholder="학교 이메일 주소 입력">
+      </div>
+      <div class="form-group">
+        <label for="password">비밀번호</label>
+        <input type="password" id="password" placeholder="비밀번호 입력">
+      </div>
+      <button class="button" onclick="login()">로그인</button>
+      <div id="error-message" class="error-message"></div>
+    </div>
+
+    <script>
+      // 로그인 함수
+      function login() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const errorMessage = document.getElementById('error-message');
+        
+        // 입력 검증
+        if (!email || !password) {
+          errorMessage.textContent = '이메일과 비밀번호를 모두 입력해주세요.';
+          errorMessage.style.display = 'block';
+          return;
+        }
+        
+        // API 호출
+        fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password })
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('로그인에 실패했습니다.');
+          }
+          return response.json();
+        })
+        .then(data => {
+          // 로그인 성공 시 세션 저장 및 리다이렉트
+          localStorage.setItem('userEmail', email);
+          localStorage.setItem('studentName', data.studentName);
+          window.location.href = '/index.html';
+        })
+        .catch(error => {
+          errorMessage.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
+          errorMessage.style.display = 'block';
+          console.error('Error:', error);
+        });
+      }
+      
+      // 엔터 키 이벤트 처리
+      document.getElementById('password').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+          login();
+        }
+      });
+    </script>
+  </body>
+</html>

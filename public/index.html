@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>주식투자 프로젝트</title>
+    <link rel="icon" href="https://www.google.com/images/product/sheets_32dp.png">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+      h1, h2 {
+        color: #4285f4;
+      }
+      .input-group {
+        margin: 20px 0;
+      }
+      .stock-list {
+        margin: 20px 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .input-number {
+        width: 80px;
+        padding: 5px;
+      }
+      .button {
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      .button:hover {
+        background-color: #3b78e7;
+      }
+      .budget-info {
+        margin: 20px 0;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-radius: 4px;
+      }
+      .portfolio-summary {
+        margin: 20px 0;
+        padding: 15px;
+        background-color: #f0f7ff;
+        border-radius: 4px;
+        border-left: 4px solid #4285f4;
+      }
+      .result {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 4px;
+        display: none;
+      }
+      .success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .loading {
+        text-align: center;
+        display: none;
+      }
+      .highlight {
+        font-weight: bold;
+        color: #4285f4;
+      }
+      .tab-container {
+        margin: 20px 0;
+      }
+      .tab-button {
+        background-color: #f1f1f1;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+      .tab-button:hover {
+        background-color: #ddd;
+      }
+      .tab-button.active {
+        background-color: #4285f4;
+        color: white;
+      }
+      .tab-content {
+        display: none;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-top: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>주식투자 프로젝트</h1>
+      <div id="user-info">
+        <p>로그인 중: <span id="user-email">불러오는 중...</span> <button class="button" style="padding: 5px 10px; margin-left: 10px;" onclick="logout()">로그아웃</button></p>
+        <p>학생 이름: <span id="student-name" class="highlight">불러오는 중...</span></p>
+      </div>
+      
+      <div class="tab-container">
+        <button class="tab-button active" onclick="openTab(event, 'tab-invest')">주식 투자</button>
+        <button class="tab-button" onclick="openTab(event, 'tab-portfolio')">내 포트폴리오</button>
+      </div>
+      
+      <div id="tab-invest" class="tab-content" style="display: block;">
+        <div class="budget-info">
+          <p>보유 현금: <span id="remaining-budget" class="highlight">불러오는 중...</span></p>
+          <p>현재 투자 금액: <span id="invested-amount">0원</span></p>
+        </div>
+        
+        <div class="stock-list">
+          <h2>주식 목록</h2>
+          <table id="stock-table">
+            <thead>
+              <tr>
+                <th>주식명</th>
+                <th>현재가격</th>
+                <th>보유 수량</th>
+                <th>구매 수량</th>
+                <th>총 투자금액</th>
+                <th>판매</th>
+              </tr>
+            </thead>
+            <tbody id="stock-list-body">
+              <!-- 여기에 주식 목록이 동적으로 추가됩니다 -->
+            </tbody>
+          </table>
+        </div>
+        
+        <button class="button" onclick="saveInvestment()">투자 저장하기</button>
+      </div>
+      
+      <div id="tab-portfolio" class="tab-content">
+        <div class="portfolio-summary" id="portfolio-summary">
+          <!-- 포트폴리오 요약 정보 -->
+        </div>
+        
+        <h2>내 보유 주식</h2>
+        <table id="portfolio-table">
+          <thead>
+            <tr>
+              <th>주식명</th>
+              <th>보유 수량</th>
+              <th>현재가격</th>
+              <th>평가금액</th>
+            </tr>
+          </thead>
+          <tbody id="portfolio-body">
+            <!-- 여기에 포트폴리오 정보가 동적으로 추가됩니다 -->
+          </tbody>
+        </table>
+        
+        <button class="button" onclick="evaluatePortfolio()">포트폴리오 새로고침</button>
+      </div>
+      
+      <div class="loading" id="loading">데이터 처리 중...</div>
+      <div class="result" id="result"></div>
+    </div>
+
+    <script>
+      // API 기본 URL
+      const API_BASE_URL = window.location.origin;
+      
+      // 사용자 정보
+      var userEmail = '';
+      var studentName = '';
+      var cashRemaining = 0;
+      var stockData = [];
+      var studentInvestments = [];
+      
+      // 페이지 로드시 실행
+      window.onload = function() {
+        // 로그인 상태 확인
+        checkLoginStatus();
+        
+        // 주식 정보 가져오기
+        loadStockData();
+      };
+      
+      // 로그인 상태 확인
+      function checkLoginStatus() {
+        // localStorage에서 사용자 정보 가져오기
+        userEmail = localStorage.getItem('userEmail');
+        studentName = localStorage.getItem('studentName');
+        
+        // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
+        if (!userEmail) {
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        // 사용자 정보 표시
+        document.getElementById('user-email').textContent = userEmail;
+        document.getElementById('student-name').textContent = studentName || '(이름을 등록해주세요)';
+        
+        // 학생 데이터 로드
+        loadStudentData();
+      }
+      
+      // 학생 데이터 불러오기
+      function loadStudentData() {
+        document.getElementById('loading').style.display = 'block';
+        
+        fetch(`${API_BASE_URL}/api/student/investment?email=${encodeURIComponent(userEmail)}`)
+          .then(response => response.json())
+          .then(data => {
+            studentName = data.studentName;
+            cashRemaining = data.cashRemaining;
+            studentInvestments = data.investments;
+            
+            // 학생 이름 표시
+            document.getElementById('student-name').textContent = studentName || '(이름을 등록해주세요)';
+            document.getElementById('remaining-budget').textContent = cashRemaining.toLocaleString() + '원';
+            displayStockData();
+            evaluatePortfolio();
+            document.getElementById('loading').style.display = 'none';
+          })
+          .catch(error => {
+            document.getElementById('loading').style.display = 'none';
+            showResult('오류: ' + error, false);
+          });
+      }
+      
+      // 주식 정보 가져오기
+      function loadStockData() {
+        document.getElementById('loading').style.display = 'block';
+        
+        fetch(`${API_BASE_URL}/api/stocks`)
+          .then(response => response.json())
+          .then(data => {
+            stockData = data;
+            displayStockData();
+            document.getElementById('loading').style.display = 'none';
+          })
+          .catch(error => {
+            document.getElementById('loading').style.display = 'none';
+            showResult('오류: ' + error, false);
+          });
+      }
+      
+      // 주식 정보 표시하기
+      function displayStockData() {
+        if (!stockData.length) return;
+        
+        var tbody = document.getElementById('stock-list-body');
+        tbody.innerHTML = '';
+        
+        var totalInvested = 0;
+        
+        stockData.forEach(function(stock, index) {
+          var row = tbody.insertRow();
+          
+          // 주식명
+          var cell1 = row.insertCell(0);
+          cell1.textContent = stock.name;
+          
+          // 현재가격
+          var cell2 = row.insertCell(1);
+          cell2.textContent = stock.price.toLocaleString() + '원';
+          
+          // 보유 수량
+          var cell3 = row.insertCell(2);
+          var ownedQuantity = 0;
+          
+          // 학생 투자 정보가 있으면 해당 수량 표시
+          for (var i = 0; i < studentInvestments.length; i++) {
+            if (studentInvestments[i].stockName === stock.name) {
+              ownedQuantity = studentInvestments[i].quantity;
+              break;
+            }
+          }
+          cell3.textContent = ownedQuantity;
+          
+          // 구매 수량
+          var cell4 = row.insertCell(3);
+          var input = document.createElement('input');
+          input.type = 'number';
+          input.min = 0;
+          input.value = 0; // 기본값 0으로 설정
+          input.className = 'input-number';
+          input.dataset.index = index;
+          input.addEventListener('change', updateTotalAmount);
+          cell4.appendChild(input);
+          
+          // 총 투자금액 (구매하려는 금액)
+          var cell5 = row.insertCell(4);
+          cell5.textContent = '0원';
+          cell5.className = 'total-amount';
+          
+          // 판매 버튼
+          var cell6 = row.insertCell(5);
+          
+          if (ownedQuantity > 0) {
+            // 판매 컨트롤 추가
+            var sellInput = document.createElement('input');
+            sellInput.type = 'number';
+            sellInput.min = 1;
+            sellInput.max = ownedQuantity;
+            sellInput.className = 'input-number sell-input';
+            sellInput.placeholder = '수량';
+            sellInput.style.width = '50px';
+            cell6.appendChild(sellInput);
+            
+            var sellButton = document.createElement('button');
+            sellButton.textContent = '판매';
+            sellButton.className = 'button';
+            sellButton.style.marginLeft = '5px';
+            sellButton.dataset.stockIndex = index;
+            sellButton.dataset.stockName = stock.name;
+            sellButton.dataset.maxSell = ownedQuantity;
+            sellButton.dataset.price = stock.price;
+            sellButton.onclick = function() {
+              var sellQuantity = parseInt(this.previousSibling.value) || 0;
+              sellStock(this.dataset.stockName, sellQuantity, parseFloat(this.dataset.maxSell), parseFloat(this.dataset.price));
+            };
+            cell6.appendChild(sellButton);
+          } else {
+            cell6.textContent = '-';
+          }
+        });
+        
+        // 투자 금액 업데이트
+        updateTotalInvestment();
+      }
+      
+      // 총 투자금액 업데이트
+      function updateTotalAmount(event) {
+        var index = event.target.dataset.index;
+        var quantity = parseInt(event.target.value) || 0;
+        var price = stockData[index].price;
+        var totalAmount = price * quantity;
+        
+        var row = event.target.parentNode.parentNode;
+        row.cells[4].textContent = totalAmount.toLocaleString() + '원';
+        
+        updateTotalInvestment();
+      }
+      
+      // 총 투자금액 계산 및 업데이트
+      function updateTotalInvestment() {
+        var totalInvested = 0;
+        var amounts = document.querySelectorAll('.total-amount');
+        amounts.forEach(function(cell) {
+          var amountText = cell.textContent.replace(/[^0-9]/g, '');
+          totalInvested += parseInt(amountText) || 0;
+        });
+        
+        document.getElementById('invested-amount').textContent = totalInvested.toLocaleString() + '원';
+        
+        // 예산 초과시 경고 표시
+        if (totalInvested > cashRemaining) {
+          document.getElementById('remaining-budget').style.color = 'red';
+        } else {
+          document.getElementById('remaining-budget').style.color = 'green';
+        }
+      }
+      
+      // 투자 정보 저장
+      function saveInvestment() {
+        // 이름 확인
+        if (!studentName) {
+          // 이름이 없는 경우 이메일 아이디 부분을 이름으로 임시 설정
+          studentName = userEmail.split('@')[0];
+        }
+        
+        // 총 투자 금액 계산
+        var totalInvested = 0;
+        var inputs = document.querySelectorAll('.input-number:not(.sell-input)');
+        var newInvestments = [];
+        
+        // 기존 투자 정보 복사
+        studentInvestments.forEach(function(investment) {
+          newInvestments.push({
+            stockName: investment.stockName,
+            quantity: investment.quantity
+          });
+        });
+        
+        // 새로운 구매 적용
+        inputs.forEach(function(input, idx) {
+          var quantity = parseInt(input.value) || 0;
+          if (quantity > 0) {
+            var stockIndex = parseInt(input.dataset.index);
+            var stockName = stockData[stockIndex].name;
+            var stockPrice = stockData[stockIndex].price;
+            
+            totalInvested += stockPrice * quantity;
+            
+            // 기존 투자에 추가
+            var found = false;
+            for (var i = 0; i < newInvestments.length; i++) {
+              if (newInvestments[i].stockName === stockName) {
+                newInvestments[i].quantity += quantity;
+                found = true;
+                break;
+              }
+            }
+            
+            // 새 투자 추가
+            if (!found) {
+              newInvestments.push({
+                stockName: stockName,
+                quantity: quantity
+              });
+            }
+          }
+        });
+        
+        // 예산 체크
+        if (totalInvested > cashRemaining) {
+          showResult('현금이 부족합니다. 투자 수량을 조정해주세요.', false);
+          return;
+        }
+        
+        // 투자 후 남은 현금 계산
+        var newCashRemaining = cashRemaining - totalInvested;
+        
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('result').style.display = 'none';
+        
+        fetch(`${API_BASE_URL}/api/student/investment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userEmail,
+            studentName,
+            cashRemaining: newCashRemaining,
+            investments: newInvestments
+          })
+        })
+        .then(response => response.json())
+        .then(result => {
+          cashRemaining = newCashRemaining;
+          loadStudentData(); // 데이터 다시 불러오기
+          document.getElementById('loading').style.display = 'none';
+          showResult(result, true);
+        })
+        .catch(error => {
+          document.getElementById('loading').style.display = 'none';
+          showResult('오류: ' + error, false);
+        });
+      }
+      
+      // 포트폴리오 평가
+      function evaluatePortfolio() {
+        document.getElementById('loading').style.display = 'block';
+        
+        fetch(`${API_BASE_URL}/api/student/portfolio?email=${encodeURIComponent(userEmail)}`)
+          .then(response => response.json())
+          .then(data => {
+            // 포트폴리오 요약
+            var summaryHtml = '<h3>포트폴리오 요약</h3>' +
+                          '<p>보유 현금: <span class="highlight">' + data.cashRemaining.toLocaleString() + '원</span></p>' +
+                          '<p>주식 평가 금액: <span class="highlight">' + data.stockTotalValue.toLocaleString() + '원</span></p>' +
+                          '<p>총 자산: <span class="highlight">' + data.totalAssetValue.toLocaleString() + '원</span></p>';
+            
+            document.getElementById('portfolio-summary').innerHTML = summaryHtml;
+            
+            // 포트폴리오 테이블
+            var tbody = document.getElementById('portfolio-body');
+            tbody.innerHTML = '';
+            
+            if (data.stockValues.length === 0) {
+              var row = tbody.insertRow();
+              var cell = row.insertCell(0);
+              cell.colSpan = 4;
+              cell.textContent = "보유 주식이 없습니다.";
+              cell.style.textAlign = "center";
+            } else {
+              data.stockValues.forEach(function(stock) {
+                var row = tbody.insertRow();
+                
+                var cell1 = row.insertCell(0);
+                cell1.textContent = stock.stockName;
+                
+                var cell2 = row.insertCell(1);
+                cell2.textContent = stock.quantity;
+                
+                var cell3 = row.insertCell(2);
+                cell3.textContent = stock.price.toLocaleString() + '원';
+                
+                var cell4 = row.insertCell(3);
+                cell4.textContent = stock.value.toLocaleString() + '원';
+              });
+            }
+            
+            document.getElementById('loading').style.display = 'none';
+          })
+          .catch(error => {
+            document.getElementById('loading').style.display = 'none';
+            showResult('오류: ' + error, false);
+          });
+      }
+      
+      // 주식 판매 함수
+      function sellStock(stockName, sellQuantity, maxQuantity, currentPrice) {
+        if (!sellQuantity || sellQuantity <= 0) {
+          showResult('판매할 수량을 입력해주세요.', false);
+          return;
+        }
+        
+        if (sellQuantity > maxQuantity) {
+          showResult('보유한 수량보다 많이 판매할 수 없습니다.', false);
+          return;
+        }
+        
+        // 판매 금액 계산
+        var sellAmount = sellQuantity * currentPrice;
+        
+        // 현재 보유량에서 판매량 차감
+        var newInvestments = [];
+        for (var i = 0; i < studentInvestments.length; i++) {
+          var investment = studentInvestments[i];
+          if (investment.stockName === stockName) {
+            var newQuantity = investment.quantity - sellQuantity;
+            newInvestments.push({
+              stockName: investment.stockName,
+              quantity: newQuantity
+            });
+          } else {
+            newInvestments.push(investment);
+          }
+        }
+        
+        // 새 현금 잔액 계산
+        var newCashRemaining = cashRemaining + sellAmount;
+        
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('result').style.display = 'none';
+        
+        fetch(`${API_BASE_URL}/api/student/investment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userEmail,
+            studentName,
+            cashRemaining: newCashRemaining,
+            investments: newInvestments
+          })
+        })
+        .then(response => response.json())
+        .then(result => {
+          cashRemaining = newCashRemaining;
+          loadStudentData(); // 데이터 다시 불러오기
+          document.getElementById('loading').style.display = 'none';
+          showResult(sellQuantity + '주 판매 완료! ' + sellAmount.toLocaleString() + '원을 받았습니다.', true);
+        })
+        .catch(error => {
+          document.getElementById('loading').style.display = 'none';
+          showResult('오류: ' + error, false);
+        });
+      }
+      
+      // 탭 전환
+      function openTab(evt, tabName) {
+        var i, tabcontent, tabbuttons;
+        
+        // 모든 탭 컨텐츠 숨기기
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+          tabcontent[i].style.display = "none";
+        }
+        
+        // 모든 탭 버튼 비활성화
+        tabbuttons = document.getElementsByClassName("tab-button");
+        for (i = 0; i < tabbuttons.length; i++) {
+          tabbuttons[i].className = tabbuttons[i].className.replace(" active", "");
+        }
+        
+        // 선택한 탭 보이기 및 버튼 활성화
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+        
+        // 포트폴리오 탭 선택시 데이터 새로고침
+        if (tabName === 'tab-portfolio') {
+          evaluatePortfolio();
+        }
+      }
+      
+      // 결과 메시지 표시
+      function showResult(message, isSuccess) {
+        var resultDiv = document.getElementById('result');
+        resultDiv.textContent = message;
+        resultDiv.className = 'result ' + (isSuccess ? 'success' : 'error');
+        resultDiv.style.display = 'block';
+        
+        // 3초 후 메시지 숨기기
+        setTimeout(function() {
+          resultDiv.style.display = 'none';
+        }, 3000);
+      }
+      
+      // 로그아웃 함수
+      function logout() {
+        // 로컬 스토리지에서 사용자 정보 제거
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('studentName');
+        
+        // 로그인 페이지로 리다이렉트
+        window.location.href = '/login.html';
+      }
+    </script>
+  </body>
+</html>
