@@ -37,7 +37,7 @@ const studentSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   studentName: { type: String, default: '' },
   password: { type: String, required: true },
-  cashRemaining: { type: Number, default: 1000000 }, // Default starting cash
+  cashRemaining: { type: Number, default: 300000 }, // Default starting cash
   investments: [investmentSchema]
 });
 
@@ -68,30 +68,30 @@ async function initializeData() {
     const studentCount = await Student.countDocuments();
     if (studentCount === 0) {
       const initialStudents = [
-        { email: '20is31e001@g.jbedu.kr', studentName: '강윤지', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e007@g.jbedu.kr', studentName: '김율이', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e008@g.jbedu.kr', studentName: '김준수', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e010@g.jbedu.kr', studentName: '김지호', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e011@g.jbedu.kr', studentName: '김채윤', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e017@g.jbedu.kr', studentName: '박현준', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e018@g.jbedu.kr', studentName: '배서영', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e022@g.jbedu.kr', studentName: '소유진', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e024@g.jbedu.kr', studentName: '송하율', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e027@g.jbedu.kr', studentName: '연지민', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e028@g.jbedu.kr', studentName: '유건우', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e030@g.jbedu.kr', studentName: '유하준', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e036@g.jbedu.kr', studentName: '이윤건', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e037@g.jbedu.kr', studentName: '이윤서', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e050@g.jbedu.kr', studentName: '장준규', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e041@g.jbedu.kr', studentName: '정결희', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e042@g.jbedu.kr', studentName: '정아인', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e043@g.jbedu.kr', studentName: '정이현', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e044@g.jbedu.kr', studentName: '조은재', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e045@g.jbedu.kr', studentName: '조현우', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e047@g.jbedu.kr', studentName: '채윤아', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e048@g.jbedu.kr', studentName: '최현아', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '20is31e049@g.jbedu.kr', studentName: '허성수', password: 'qwer1234', cashRemaining: 1000000, investments: [] },
-        { email: '19is31e001@g.jbedu.kr', studentName: '홍서한', password: 'qwer1234', cashRemaining: 1000000, investments: [] }
+        { email: '20is31e001@g.jbedu.kr', studentName: '강윤지', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e007@g.jbedu.kr', studentName: '김율이', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e008@g.jbedu.kr', studentName: '김준수', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e010@g.jbedu.kr', studentName: '김지호', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e011@g.jbedu.kr', studentName: '김채윤', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e017@g.jbedu.kr', studentName: '박현준', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e018@g.jbedu.kr', studentName: '배서영', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e022@g.jbedu.kr', studentName: '소유진', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e024@g.jbedu.kr', studentName: '송하율', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e027@g.jbedu.kr', studentName: '연지민', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e028@g.jbedu.kr', studentName: '유건우', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e030@g.jbedu.kr', studentName: '유하준', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e036@g.jbedu.kr', studentName: '이윤건', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e037@g.jbedu.kr', studentName: '이윤서', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e050@g.jbedu.kr', studentName: '장준규', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e041@g.jbedu.kr', studentName: '정결희', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e042@g.jbedu.kr', studentName: '정아인', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e043@g.jbedu.kr', studentName: '정이현', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e044@g.jbedu.kr', studentName: '조은재', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e045@g.jbedu.kr', studentName: '조현우', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e047@g.jbedu.kr', studentName: '채윤아', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e048@g.jbedu.kr', studentName: '최현아', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '20is31e049@g.jbedu.kr', studentName: '허성수', password: 'qwer1234', cashRemaining: 300000, investments: [] },
+        { email: '19is31e001@g.jbedu.kr', studentName: '홍서한', password: 'qwer1234', cashRemaining: 300000, investments: [] }
       ];
       await Student.insertMany(initialStudents);
       console.log('초기 학생 데이터가 생성되었습니다.');
@@ -424,7 +424,7 @@ app.post('/api/student/add', async (req, res) => {
       email,
       studentName,
       password,
-      cashRemaining: 1000000, // 기본 시작 금액
+      cashRemaining: 300000, // 기본 시작 금액
       investments: []
     });
 
