@@ -6,21 +6,9 @@ services:
     ports:
       - "3001:3000"
     environment:
-      - MONGODB_URI=mongodb://mongo:27017/stockInvestment
+      - MONGODB_URI=mongodb://localhost:27017/stockInvestment
     volumes:
       - ./:/app
-    depends_on:
-      - mongo
-    restart: always
-    networks:
-      - stock-network
-
-  mongo:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
     restart: always
     networks:
       - stock-network
