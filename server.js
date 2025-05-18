@@ -37,7 +37,8 @@ const studentSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   studentName: { type: String, default: '' },
   password: { type: String, required: true },
-  cashRemaining: { type: Number, default: 300000 }, // Default starting cash
+  cashRemaining: { type: Number, default: 300000 }, // 현금
+  savings: { type: Number, default: 0 }, // 저축 금액
   investments: [investmentSchema]
 });
 
@@ -68,30 +69,30 @@ async function initializeData() {
     const studentCount = await Student.countDocuments();
     if (studentCount === 0) {
       const initialStudents = [
-        { email: '20is31e001@g.jbedu.kr', studentName: '강윤지', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e007@g.jbedu.kr', studentName: '김율이', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e008@g.jbedu.kr', studentName: '김준수', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e010@g.jbedu.kr', studentName: '김지호', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e011@g.jbedu.kr', studentName: '김채윤', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e017@g.jbedu.kr', studentName: '박현준', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e018@g.jbedu.kr', studentName: '배서영', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e022@g.jbedu.kr', studentName: '소유진', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e024@g.jbedu.kr', studentName: '송하율', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e027@g.jbedu.kr', studentName: '연지민', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e028@g.jbedu.kr', studentName: '유건우', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e030@g.jbedu.kr', studentName: '유하준', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e036@g.jbedu.kr', studentName: '이윤건', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e037@g.jbedu.kr', studentName: '이윤서', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e050@g.jbedu.kr', studentName: '장준규', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e041@g.jbedu.kr', studentName: '정결희', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e042@g.jbedu.kr', studentName: '정아인', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e043@g.jbedu.kr', studentName: '정이현', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e044@g.jbedu.kr', studentName: '조은재', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e045@g.jbedu.kr', studentName: '조현우', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e047@g.jbedu.kr', studentName: '채윤아', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e048@g.jbedu.kr', studentName: '최현아', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '20is31e049@g.jbedu.kr', studentName: '허성수', password: 'qwer1234', cashRemaining: 300000, investments: [] },
-        { email: '19is31e001@g.jbedu.kr', studentName: '홍서한', password: 'qwer1234', cashRemaining: 300000, investments: [] }
+        { email: '20is31e001@g.jbedu.kr', studentName: '강윤지', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e007@g.jbedu.kr', studentName: '김율이', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e008@g.jbedu.kr', studentName: '김준수', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e010@g.jbedu.kr', studentName: '김지호', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e011@g.jbedu.kr', studentName: '김채윤', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e017@g.jbedu.kr', studentName: '박현준', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e018@g.jbedu.kr', studentName: '배서영', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e022@g.jbedu.kr', studentName: '소유진', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e024@g.jbedu.kr', studentName: '송하율', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e027@g.jbedu.kr', studentName: '연지민', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e028@g.jbedu.kr', studentName: '유건우', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e030@g.jbedu.kr', studentName: '유하준', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e036@g.jbedu.kr', studentName: '이윤건', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e037@g.jbedu.kr', studentName: '이윤서', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e050@g.jbedu.kr', studentName: '장준규', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e041@g.jbedu.kr', studentName: '정결희', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e042@g.jbedu.kr', studentName: '정아인', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e043@g.jbedu.kr', studentName: '정이현', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e044@g.jbedu.kr', studentName: '조은재', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e045@g.jbedu.kr', studentName: '조현우', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e047@g.jbedu.kr', studentName: '채윤아', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e048@g.jbedu.kr', studentName: '최현아', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '20is31e049@g.jbedu.kr', studentName: '허성수', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] },
+        { email: '19is31e001@g.jbedu.kr', studentName: '홍서한', password: 'qwer1234', cashRemaining: 300000, savings: 0, investments: [] }
       ];
       await Student.insertMany(initialStudents);
       console.log('초기 학생 데이터가 생성되었습니다.');
@@ -169,6 +170,7 @@ app.get('/api/student/investment', async (req, res) => {
         email,
         studentName: '',
         cashRemaining: 1000000,
+        savings: 0,
         investments: []
       });
       await student.save();
@@ -177,6 +179,7 @@ app.get('/api/student/investment', async (req, res) => {
     res.json({
       studentName: student.studentName,
       cashRemaining: student.cashRemaining,
+      savings: student.savings,
       investments: student.investments
     });
   } catch (error) {
@@ -188,7 +191,7 @@ app.get('/api/student/investment', async (req, res) => {
 // Save student investment
 app.post('/api/student/investment', async (req, res) => {
   try {
-    const { userEmail, studentName, cashRemaining, investments } = req.body;
+    const { userEmail, studentName, cashRemaining, savings, investments } = req.body;
     
     if (!userEmail) {
       return res.status(400).json({ error: 'Email is required' });
@@ -200,6 +203,7 @@ app.post('/api/student/investment', async (req, res) => {
       {
         studentName,
         cashRemaining,
+        savings,
         investments
       },
       { new: true, upsert: true }
@@ -329,7 +333,7 @@ app.get('/api/admin/students', async (req, res) => {
       return res.status(500).json({ error: '데이터베이스 연결 오류' });
     }
     
-    const students = await Student.find({}, 'email studentName cashRemaining investments');
+    const students = await Student.find({}, 'email studentName cashRemaining savings investments');
     console.log('조회된 학생 수:', students.length);
     res.json(students);
   } catch (error) {
@@ -360,11 +364,12 @@ app.get('/api/admin/students/:email', async (req, res) => {
 app.put('/api/admin/students/:email', async (req, res) => {
   try {
     const email = req.params.email;
-    const { studentName, cashRemaining, investments, password } = req.body;
+    const { studentName, cashRemaining, savings, investments, password } = req.body;
     
     const updateData = {};
     if (studentName !== undefined) updateData.studentName = studentName;
     if (cashRemaining !== undefined) updateData.cashRemaining = cashRemaining;
+    if (savings !== undefined) updateData.savings = savings;
     if (investments !== undefined) updateData.investments = investments;
     if (password !== undefined) updateData.password = password;
     
@@ -425,6 +430,7 @@ app.post('/api/student/add', async (req, res) => {
       studentName,
       password,
       cashRemaining: 300000, // 기본 시작 금액
+      savings: 0,
       investments: []
     });
 
@@ -435,7 +441,8 @@ app.post('/api/student/add', async (req, res) => {
       student: {
         email: newStudent.email,
         studentName: newStudent.studentName,
-        cashRemaining: newStudent.cashRemaining
+        cashRemaining: newStudent.cashRemaining,
+        savings: newStudent.savings
       }
     });
   } catch (error) {
@@ -453,15 +460,15 @@ app.post('/api/admin/pay-interest', async (req, res) => {
       return res.status(400).json({ error: '유효한 이자율을 입력해주세요.' });
     }
 
-    // 모든 학생의 현금에 이자 지급
+    // 모든 학생의 저축금에만 이자 지급
     const result = await Student.updateMany(
       {},
       [
         {
           $set: {
-            cashRemaining: {
+            savings: {
               $multiply: [
-                "$cashRemaining",
+                "$savings",
                 1 + (interestRate / 100)
               ]
             }
@@ -472,12 +479,59 @@ app.post('/api/admin/pay-interest', async (req, res) => {
 
     res.json({
       success: true,
-      message: `모든 학생에게 ${interestRate}%의 이자가 지급되었습니다.`,
+      message: `모든 학생의 저축금에 ${interestRate}%의 이자가 지급되었습니다.`,
       modifiedCount: result.modifiedCount
     });
   } catch (error) {
     console.error('이자 지급 오류:', error);
     res.status(500).json({ error: '이자 지급 중 오류가 발생했습니다.' });
+  }
+});
+
+// 저축 API 추가
+app.post('/api/student/savings', async (req, res) => {
+  try {
+    const { email, amount, action } = req.body;
+    
+    if (!email || !amount || !action) {
+      return res.status(400).json({ error: '필수 정보가 누락되었습니다.' });
+    }
+
+    const student = await Student.findOne({ email });
+    if (!student) {
+      return res.status(404).json({ error: '학생을 찾을 수 없습니다.' });
+    }
+
+    if (action === 'deposit') {
+      // 입금
+      if (student.cashRemaining < amount) {
+        return res.status(400).json({ error: '현금이 부족합니다.' });
+      }
+      student.cashRemaining -= amount;
+      student.savings += amount;
+    } else if (action === 'withdraw') {
+      // 출금
+      if (student.savings < amount) {
+        return res.status(400).json({ error: '저축금이 부족합니다.' });
+      }
+      student.savings -= amount;
+      student.cashRemaining += amount;
+    } else {
+      return res.status(400).json({ error: '잘못된 작업입니다.' });
+    }
+
+    await student.save();
+    res.json({
+      success: true,
+      message: action === 'deposit' ? '저축이 완료되었습니다.' : '출금이 완료되었습니다.',
+      student: {
+        cashRemaining: student.cashRemaining,
+        savings: student.savings
+      }
+    });
+  } catch (error) {
+    console.error('저축 처리 오류:', error);
+    res.status(500).json({ error: '저축 처리 중 오류가 발생했습니다.' });
   }
 });
 

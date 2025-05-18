@@ -1,0 +1,92 @@
+  <div class="info-container">
+    <h2>계좌 정보</h2>
+    <p>보유 현금: <span id="cash-amount" class="highlight">0원</span></p>
+    <p>저축 금액: <span id="savings-amount" class="highlight">0원</span></p>
+    <p>총 자산: <span id="total-amount" class="highlight">0원</span></p>
+  </div>
+
+  <div class="form-container">
+    <h2>저축 관리</h2>
+    <div class="form-group">
+      <label for="savings-amount">금액</label>
+      <input type="number" id="savings-amount-input" placeholder="금액 입력">
+    </div>
+    <div class="button-group">
+      <button class="button" onclick="handleSavings('deposit')">입금</button>
+      <button class="button" onclick="handleSavings('withdraw')">출금</button>
+    </div>
+    <div id="savings-result" class="result"></div>
+  </div>
+
+  // 자산 정보 업데이트 함수 수정
+  function updateAccountInfo() {
+    const cashAmount = document.getElementById('cash-amount');
+    const savingsAmount = document.getElementById('savings-amount');
+    const totalAmount = document.getElementById('total-amount');
+    
+    // 현금과 저축금 표시
+    cashAmount.textContent = userData.cashRemaining.toLocaleString() + '원';
+    savingsAmount.textContent = userData.savings.toLocaleString() + '원';
+    
+    // 총 자산 계산 (현금 + 저축금 + 주식 평가금액)
+    let total = userData.cashRemaining + userData.savings;
+    if (userData.investments && userData.investments.length > 0) {
+      userData.investments.forEach(investment => {
+        const stock = stockData.find(s => s.name === investment.stockName);
+        if (stock) {
+          total += stock.price * investment.quantity;
+        }
+      });
+    }
+    totalAmount.textContent = total.toLocaleString() + '원';
+  }
+
+  // 저축 처리 함수
+  async function handleSavings(action) {
+    const amountInput = document.getElementById('savings-amount-input');
+    const amount = parseFloat(amountInput.value);
+    const resultDiv = document.getElementById('savings-result');
+
+    if (isNaN(amount) || amount <= 0) {
+      resultDiv.className = 'result error';
+      resultDiv.textContent = '유효한 금액을 입력해주세요.';
+      resultDiv.style.display = 'block';
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/student/savings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: userData.email,
+          amount: amount,
+          action: action
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        resultDiv.className = 'result success';
+        resultDiv.textContent = data.message;
+        // 입력 필드 초기화
+        amountInput.value = '';
+        // 계좌 정보 업데이트
+        userData.cashRemaining = data.student.cashRemaining;
+        userData.savings = data.student.savings;
+        updateAccountInfo();
+      } else {
+        resultDiv.className = 'result error';
+        resultDiv.textContent = data.error;
+      }
+      resultDiv.style.display = 'block';
+    } catch (error) {
+      resultDiv.className = 'result error';
+      resultDiv.textContent = '저축 처리 중 오류가 발생했습니다.';
+      resultDiv.style.display = 'block';
+      console.error('Error:', error);
+    }
+  } 

@@ -347,6 +347,7 @@
               <th>이메일</th>
               <th>이름</th>
               <th>보유 현금</th>
+              <th>저축 금액</th>
               <th>투자 현황</th>
               <th>관리</th>
             </tr>
@@ -362,6 +363,7 @@
           <p>이메일: <span id="detail-email"></span></p>
           <p>이름: <span id="detail-name"></span></p>
           <p>보유 현금: <span id="detail-cash" class="highlight"></span></p>
+          <p>저축 금액: <span id="detail-savings" class="highlight"></span></p>
         </div>
         
         <div class="form-container">
@@ -373,6 +375,10 @@
           <div class="form-group">
             <label for="edit-cash">보유 현금</label>
             <input type="number" id="edit-cash">
+          </div>
+          <div class="form-group">
+            <label for="edit-savings">저축 금액</label>
+            <input type="number" id="edit-savings">
           </div>
           <div class="form-group">
             <label for="edit-password">비밀번호 변경 (변경하지 않으려면 비워두세요)</label>
@@ -438,10 +444,12 @@
             document.getElementById('detail-email').textContent = student.email;
             document.getElementById('detail-name').textContent = student.studentName || '(이름 없음)';
             document.getElementById('detail-cash').textContent = student.cashRemaining.toLocaleString() + '원';
+            document.getElementById('detail-savings').textContent = student.savings.toLocaleString() + '원';
             
             // 수정 폼 초기화
             document.getElementById('edit-name').value = student.studentName || '';
             document.getElementById('edit-cash').value = student.cashRemaining;
+            document.getElementById('edit-savings').value = student.savings;
             document.getElementById('edit-password').value = '';
             
             // 보유 주식 표시
@@ -739,18 +747,22 @@
           var cell3 = row.insertCell(2);
           cell3.textContent = student.cashRemaining.toLocaleString() + '원';
           
-          // 보유 주식 수
+          // 저축 금액
           var cell4 = row.insertCell(3);
+          cell4.textContent = student.savings.toLocaleString() + '원';
+          
+          // 보유 주식 수
+          var cell5 = row.insertCell(4);
           var stockCount = 0;
           if (student.investments && student.investments.length > 0) {
             student.investments.forEach(function(investment) {
               stockCount += investment.quantity;
             });
           }
-          cell4.textContent = stockCount + '주';
+          cell5.textContent = stockCount + '주';
           
           // 작업 버튼
-          var cell5 = row.insertCell(4);
+          var cell6 = row.insertCell(5);
           
           var viewButton = document.createElement('button');
           viewButton.textContent = '상세 정보';
@@ -760,7 +772,7 @@
           viewButton.onclick = function() {
             viewStudentDetail(this.dataset.email);
           };
-          cell5.appendChild(viewButton);
+          cell6.appendChild(viewButton);
           
           var deleteButton = document.createElement('button');
           deleteButton.textContent = '삭제';
@@ -769,7 +781,7 @@
           deleteButton.onclick = function() {
             deleteStudent(this.dataset.email);
           };
-          cell5.appendChild(deleteButton);
+          cell6.appendChild(deleteButton);
         });
       }
       
@@ -894,16 +906,23 @@
         
         var name = document.getElementById('edit-name').value.trim();
         var cash = parseFloat(document.getElementById('edit-cash').value);
+        var savings = parseFloat(document.getElementById('edit-savings').value);
         var password = document.getElementById('edit-password').value;
         
         if (isNaN(cash) || cash < 0) {
           showResult('유효한 현금 금액을 입력해주세요.', false);
           return;
         }
+
+        if (isNaN(savings) || savings < 0) {
+          showResult('유효한 저축 금액을 입력해주세요.', false);
+          return;
+        }
         
         var updateData = {
           studentName: name,
-          cashRemaining: cash
+          cashRemaining: cash,
+          savings: savings
         };
         
         if (password) {
