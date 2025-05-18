@@ -321,11 +321,21 @@ app.delete('/api/admin/stocks/:name', async (req, res) => {
 // Admin route to get all students
 app.get('/api/admin/students', async (req, res) => {
   try {
+    console.log('학생 목록 조회 시작');
+    
+    // MongoDB 연결 상태 확인
+    if (!mongoose.connection.readyState) {
+      console.error('MongoDB 연결이 되어있지 않습니다.');
+      return res.status(500).json({ error: '데이터베이스 연결 오류' });
+    }
+    
     const students = await Student.find({}, 'email studentName cashRemaining investments');
+    console.log('조회된 학생 수:', students.length);
     res.json(students);
   } catch (error) {
-    console.error('Error fetching students:', error);
-    res.status(500).json({ error: 'Failed to fetch student data' });
+    console.error('학생 목록 조회 오류:', error);
+    console.error('오류 상세:', error.stack);
+    res.status(500).json({ error: '학생 데이터 조회 중 오류가 발생했습니다.' });
   }
 });
 
