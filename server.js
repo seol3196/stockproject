@@ -52,16 +52,13 @@ async function initializeData() {
     const stockCount = await Stock.countDocuments();
     if (stockCount === 0) {
       const initialStocks = [
-        { name: '삼성전자', price: 70000 },
-        { name: '현대자동차', price: 180000 },
-        { name: '네이버', price: 350000 },
-        { name: '카카오', price: 120000 },
-        { name: 'LG전자', price: 95000 },
-        { name: 'SK하이닉스', price: 110000 },
-        { name: 'POSCO', price: 280000 },
-        { name: 'KB금융', price: 45000 },
-        { name: '신한금융', price: 35000 },
-        { name: '셀트리온', price: 250000 }
+        { name: 'D그룹', price: 100000 },
+        { name: 'S정유', price: 50000 },
+        { name: 'H시멘트', price: 20000 },
+        { name: 'K의류', price: 10000 },
+        { name: 'H자동차', price: 30000 },
+        { name: 'A조선', price: 5000 },
+        { name: 'P철강', price: 5000 }
       ];
       await Stock.insertMany(initialStocks);
       console.log('초기 주식 데이터가 생성되었습니다.');
@@ -393,6 +390,84 @@ app.delete('/api/admin/students/:email', async (req, res) => {
   } catch (error) {
     console.error('Error deleting student:', error);
     res.status(500).json({ error: 'Failed to delete student' });
+  }
+});
+
+// Add new student
+app.post('/api/student/add', async (req, res) => {
+  try {
+    const { email, studentName, password } = req.body;
+    
+    // 필수 필드 확인
+    if (!email || !studentName || !password) {
+      return res.status(400).json({ error: '이메일, 이름, 비밀번호는 필수 입력 항목입니다.' });
+    }
+
+    // 이메일 중복 확인
+    const existingStudent = await Student.findOne({ email });
+    if (existingStudent) {
+      return res.status(400).json({ error: '이미 등록된 이메일입니다.' });
+    }
+
+    // 새 학생 생성
+    const newStudent = new Student({
+      email,
+      studentName,
+      password,
+      cashRemaining: 1000000, // 기본 시작 금액
+      investments: []
+    });
+
+    await newStudent.save();
+    res.status(201).json({ 
+      success: true, 
+      message: '학생이 성공적으로 추가되었습니다.',
+      student: {
+        email: newStudent.email,
+        studentName: newStudent.studentName,
+        cashRemaining: newStudent.cashRemaining
+      }
+    });
+  } catch (error) {
+    console.error('학생 추가 오류:', error);
+    res.status(500).json({ error: '학생 추가 중 오류가 발생했습니다.' });
+  }
+});
+
+// 이자 지급 API
+app.post('/api/admin/pay-interest', async (req, res) => {
+  try {
+    const { interestRate } = req.body;
+    
+    if (!interestRate || isNaN(interestRate) || interestRate < 0) {
+      return res.status(400).json({ error: '유효한 이자율을 입력해주세요.' });
+    }
+
+    // 모든 학생의 현금에 이자 지급
+    const result = await Student.updateMany(
+      {},
+      [
+        {
+          $set: {
+            cashRemaining: {
+              $multiply: [
+                "$cashRemaining",
+                1 + (interestRate / 100)
+              ]
+            }
+          }
+        }
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: `모든 학생에게 ${interestRate}%의 이자가 지급되었습니다.`,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    console.error('이자 지급 오류:', error);
+    res.status(500).json({ error: '이자 지급 중 오류가 발생했습니다.' });
   }
 });
 

@@ -284,6 +284,17 @@
           <button class="button" onclick="addStock()">주식 추가</button>
         </div>
         
+        <!-- 이자 지급 섹션 추가 -->
+        <div class="form-container">
+          <h2>이자 지급</h2>
+          <div class="form-group">
+            <label for="interest-rate">이자율 (%)</label>
+            <input type="number" id="interest-rate" placeholder="이자율 입력" step="0.01" min="0">
+          </div>
+          <button class="button" onclick="payInterest()">이자 지급</button>
+          <div id="interestResult" class="result"></div>
+        </div>
+        
         <h2>주식 목록</h2>
         <table id="stock-table">
           <thead>
@@ -304,87 +315,106 @@
       
       <!-- 학생 관리 탭 -->
       <div id="tab-students" class="tab-content">
+        <h2>학생 관리</h2>
+        
+        <!-- 학생 추가 폼 -->
+        <div class="form-container">
+          <h3>새 학생 추가</h3>
+          <div class="form-group">
+            <label for="newStudentEmail">이메일:</label>
+            <input type="email" id="newStudentEmail" placeholder="예: 20is31e001@g.jbedu.kr" required>
+          </div>
+          <div class="form-group">
+            <label for="newStudentName">이름:</label>
+            <input type="text" id="newStudentName" placeholder="학생 이름" required>
+          </div>
+          <div class="form-group">
+            <label for="newStudentPassword">비밀번호:</label>
+            <input type="password" id="newStudentPassword" placeholder="비밀번호" required>
+          </div>
+          <button class="button" onclick="addNewStudent()">학생 추가</button>
+          <div id="addStudentResult" class="result"></div>
+        </div>
+
         <div class="search-container">
-          <input type="text" id="student-search" placeholder="학생 이름 또는 이메일로 검색" onkeyup="searchStudents()">
+          <input type="text" id="studentSearch" placeholder="학생 검색..." onkeyup="searchStudents()">
         </div>
         
-        <h2>학생 목록</h2>
-        <table id="student-table">
+        <div id="loading" class="loading">로딩 중...</div>
+        <table id="studentTable">
           <thead>
             <tr>
               <th>이메일</th>
               <th>이름</th>
               <th>보유 현금</th>
-              <th>보유 주식 수</th>
-              <th>작업</th>
+              <th>투자 현황</th>
+              <th>관리</th>
             </tr>
           </thead>
-          <tbody id="student-list-body">
-            <!-- 여기에 학생 목록이 동적으로 추가됩니다 -->
+          <tbody id="studentTableBody"></tbody>
+        </table>
+      </div>
+      
+      <!-- 학생 상세 정보 -->
+      <div id="student-detail" class="student-detail">
+        <h3>학생 상세 정보</h3>
+        <div id="student-info">
+          <p>이메일: <span id="detail-email"></span></p>
+          <p>이름: <span id="detail-name"></span></p>
+          <p>보유 현금: <span id="detail-cash" class="highlight"></span></p>
+        </div>
+        
+        <div class="form-container">
+          <h3>정보 수정</h3>
+          <div class="form-group">
+            <label for="edit-name">이름</label>
+            <input type="text" id="edit-name">
+          </div>
+          <div class="form-group">
+            <label for="edit-cash">보유 현금</label>
+            <input type="number" id="edit-cash">
+          </div>
+          <div class="form-group">
+            <label for="edit-password">비밀번호 변경 (변경하지 않으려면 비워두세요)</label>
+            <input type="password" id="edit-password" placeholder="새 비밀번호">
+          </div>
+          <button class="button" onclick="updateStudent()">정보 업데이트</button>
+        </div>
+        
+        <h3>보유 주식</h3>
+        <table id="student-stocks">
+          <thead>
+            <tr>
+              <th>주식명</th>
+              <th>보유 수량</th>
+              <th>현재가격</th>
+              <th>평가금액</th>
+            </tr>
+          </thead>
+          <tbody id="student-stocks-body">
+            <!-- 여기에 학생의 주식 정보가 동적으로 추가됩니다 -->
           </tbody>
         </table>
         
-        <!-- 학생 상세 정보 -->
-        <div id="student-detail" class="student-detail">
-          <h3>학생 상세 정보</h3>
-          <div id="student-info">
-            <p>이메일: <span id="detail-email"></span></p>
-            <p>이름: <span id="detail-name"></span></p>
-            <p>보유 현금: <span id="detail-cash" class="highlight"></span></p>
+        <div class="form-container">
+          <h3>주식 수정</h3>
+          <div class="form-group">
+            <label for="edit-stock">주식 선택</label>
+            <select id="edit-stock">
+              <!-- 여기에 주식 목록이 동적으로 추가됩니다 -->
+            </select>
           </div>
-          
-          <div class="form-container">
-            <h3>정보 수정</h3>
-            <div class="form-group">
-              <label for="edit-name">이름</label>
-              <input type="text" id="edit-name">
-            </div>
-            <div class="form-group">
-              <label for="edit-cash">보유 현금</label>
-              <input type="number" id="edit-cash">
-            </div>
-            <div class="form-group">
-              <label for="edit-password">비밀번호 변경 (변경하지 않으려면 비워두세요)</label>
-              <input type="password" id="edit-password" placeholder="새 비밀번호">
-            </div>
-            <button class="button" onclick="updateStudent()">정보 업데이트</button>
+          <div class="form-group">
+            <label for="edit-quantity">수량</label>
+            <input type="number" id="edit-quantity" min="0">
           </div>
-          
-          <h3>보유 주식</h3>
-          <table id="student-stocks">
-            <thead>
-              <tr>
-                <th>주식명</th>
-                <th>보유 수량</th>
-                <th>현재가격</th>
-                <th>평가금액</th>
-              </tr>
-            </thead>
-            <tbody id="student-stocks-body">
-              <!-- 여기에 학생의 주식 정보가 동적으로 추가됩니다 -->
-            </tbody>
-          </table>
-          
-          <div class="form-container">
-            <h3>주식 수정</h3>
-            <div class="form-group">
-              <label for="edit-stock">주식 선택</label>
-              <select id="edit-stock">
-                <!-- 여기에 주식 목록이 동적으로 추가됩니다 -->
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="edit-quantity">수량</label>
-              <input type="number" id="edit-quantity" min="0">
-            </div>
-            <button class="button" onclick="updateStudentStock()">주식 업데이트</button>
-          </div>
+          <button class="button" onclick="updateStudentStock()">주식 업데이트</button>
         </div>
       </div>
-      
-      <div class="loading" id="loading">데이터 처리 중...</div>
-      <div class="result" id="result"></div>
     </div>
+
+    <div class="loading" id="loading">데이터 처리 중...</div>
+    <div class="result" id="result"></div>
 
     <script>
       // API 기본 URL
@@ -758,9 +788,9 @@
       
       // 학생 검색
       function searchStudents() {
-        var input = document.getElementById('student-search');
+        var input = document.getElementById('studentSearch');
         var filter = input.value.toLowerCase();
-        var rows = document.getElementById('student-list-body').getElementsByTagName('tr');
+        var rows = document.getElementById('studentTableBody').getElementsByTagName('tr');
         
         for (var i = 0; i < rows.length; i++) {
           var emailCell = rows[i].getElementsByTagName('td')[0];
@@ -996,4 +1026,96 @@
           resultDiv.style.display = 'none';
         }, 3000);
       }
+
+      // 새 학생 추가 함수
+      async function addNewStudent() {
+        const email = document.getElementById('newStudentEmail').value;
+        const studentName = document.getElementById('newStudentName').value;
+        const password = document.getElementById('newStudentPassword').value;
+        const resultDiv = document.getElementById('addStudentResult');
+
+        if (!email || !studentName || !password) {
+          resultDiv.className = 'result error';
+          resultDiv.textContent = '모든 필드를 입력해주세요.';
+          resultDiv.style.display = 'block';
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/student/add', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, studentName, password })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            resultDiv.className = 'result success';
+            resultDiv.textContent = data.message;
+            // 입력 필드 초기화
+            document.getElementById('newStudentEmail').value = '';
+            document.getElementById('newStudentName').value = '';
+            document.getElementById('newStudentPassword').value = '';
+            // 학생 목록 새로고침
+            loadStudentData();
+          } else {
+            resultDiv.className = 'result error';
+            resultDiv.textContent = data.error;
+          }
+          resultDiv.style.display = 'block';
+        } catch (error) {
+          resultDiv.className = 'result error';
+          resultDiv.textContent = '학생 추가 중 오류가 발생했습니다.';
+          resultDiv.style.display = 'block';
+          console.error('Error:', error);
+        }
+      }
+
+      // 이자 지급 함수 추가
+      async function payInterest() {
+        const interestRate = parseFloat(document.getElementById('interest-rate').value);
+        const resultDiv = document.getElementById('interestResult');
+
+        if (isNaN(interestRate) || interestRate < 0) {
+          resultDiv.className = 'result error';
+          resultDiv.textContent = '유효한 이자율을 입력해주세요.';
+          resultDiv.style.display = 'block';
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/admin/pay-interest', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ interestRate })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            resultDiv.className = 'result success';
+            resultDiv.textContent = data.message;
+            // 이자율 입력 필드 초기화
+            document.getElementById('interest-rate').value = '';
+            // 학생 목록 새로고침
+            loadStudentData();
+          } else {
+            resultDiv.className = 'result error';
+            resultDiv.textContent = data.error;
+          }
+          resultDiv.style.display = 'block';
+        } catch (error) {
+          resultDiv.className = 'result error';
+          resultDiv.textContent = '이자 지급 중 오류가 발생했습니다.';
+          resultDiv.style.display = 'block';
+          console.error('Error:', error);
+        }
+      }
     </script>
+  </body>
+</html>
