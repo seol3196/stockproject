@@ -351,7 +351,7 @@
               <th>관리</th>
             </tr>
           </thead>
-          <tbody id="studentTableBody"></tbody>
+          <tbody id="student-list-body"></tbody>
         </table>
       </div>
       
@@ -718,6 +718,10 @@
       // 학생 정보 표시하기
       function displayStudentData() {
         var tbody = document.getElementById('student-list-body');
+        if (!tbody) {
+          console.error('student-list-body 요소를 찾을 수 없습니다.');
+          return;
+        }
         tbody.innerHTML = '';
         
         studentData.forEach(function(student) {
@@ -790,7 +794,7 @@
       function searchStudents() {
         var input = document.getElementById('studentSearch');
         var filter = input.value.toLowerCase();
-        var rows = document.getElementById('studentTableBody').getElementsByTagName('tr');
+        var rows = document.getElementById('student-list-body').getElementsByTagName('tr');
         
         for (var i = 0; i < rows.length; i++) {
           var emailCell = rows[i].getElementsByTagName('td')[0];
