@@ -16,13 +16,14 @@ services:
       - stock-network
 
   mongo:
-    image: mongo:latest
+    image: mongo:4.4
     ports:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
     networks:
       - stock-network
+    command: mongod --bind_ip_all
 
 networks:
   stock-network:
