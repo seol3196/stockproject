@@ -775,18 +775,32 @@
       
       // 학생 정보 가져오기
       function loadStudentData() {
+        console.log("학생 정보 가져오기 시작");
         document.getElementById('loading').style.display = 'block';
         
         fetch(`${API_BASE_URL}/api/admin/students`)
-          .then(response => response.json())
+          .then(response => {
+            console.log("학생 API 응답 상태:", response.status);
+            if (!response.ok) {
+              throw new Error('학생 정보를 가져오는데 실패했습니다. 상태 코드: ' + response.status);
+            }
+            return response.json();
+          })
           .then(data => {
+            console.log("학생 데이터 받음:", data);
+            // 데이터가 배열인지 확인
+            if (!Array.isArray(data)) {
+              console.error("서버에서 받은 데이터가 배열이 아닙니다:", data);
+              throw new Error('서버에서 잘못된 형식의 데이터를 받았습니다.');
+            }
             studentData = data;
             displayStudentData();
             document.getElementById('loading').style.display = 'none';
           })
           .catch(error => {
+            console.error("학생 정보 가져오기 오류:", error);
             document.getElementById('loading').style.display = 'none';
-            showResult('오류: ' + error, false);
+            showResult('오류: ' + error.message, false);
           });
       }
       
