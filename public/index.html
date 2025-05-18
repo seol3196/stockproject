@@ -114,6 +114,18 @@
         border: 1px solid #ccc;
         border-top: none;
       }
+      .info-container {
+        margin-bottom: 20px;
+      }
+      .form-container {
+        margin-bottom: 20px;
+      }
+      .form-group {
+        margin-bottom: 10px;
+      }
+      .button-group {
+        margin-top: 10px;
+      }
     </style>
   </head>
   <body>
@@ -132,6 +144,7 @@
       <div id="tab-invest" class="tab-content" style="display: block;">
         <div class="budget-info">
           <p>보유 현금: <span id="remaining-budget" class="highlight">불러오는 중...</span></p>
+          <p>저축 금액: <span id="savings-amount" class="highlight">0원</span></p>
           <p>현재 투자 금액: <span id="invested-amount">0원</span></p>
         </div>
         
@@ -180,6 +193,19 @@
         <button class="button" onclick="evaluatePortfolio()">포트폴리오 새로고침</button>
       </div>
       
+      <div class="form-container">
+        <h2>저축 관리</h2>
+        <div class="form-group">
+          <label for="savings-amount">금액</label>
+          <input type="number" id="savings-amount-input" placeholder="금액 입력">
+        </div>
+        <div class="button-group">
+          <button class="button" onclick="handleSavings('deposit')">입금</button>
+          <button class="button" onclick="handleSavings('withdraw')">출금</button>
+        </div>
+        <div id="savings-result" class="result"></div>
+      </div>
+      
       <div class="loading" id="loading">데이터 처리 중...</div>
       <div class="result" id="result"></div>
     </div>
@@ -194,6 +220,11 @@
       var cashRemaining = 0;
       var stockData = [];
       var studentInvestments = [];
+      var userData = {
+        cashRemaining: 0,
+        savings: 0,
+        investments: []
+      };
       
       // 페이지 로드시 실행
       window.onload = function() {
@@ -235,9 +266,15 @@
             cashRemaining = data.cashRemaining;
             studentInvestments = data.investments;
             
+            // userData 업데이트
+            userData.cashRemaining = data.cashRemaining;
+            userData.savings = data.savings || 0;
+            userData.investments = data.investments;
+            
             // 학생 이름 표시
             document.getElementById('student-name').textContent = studentName || '(이름을 등록해주세요)';
             document.getElementById('remaining-budget').textContent = cashRemaining.toLocaleString() + '원';
+            document.getElementById('savings-amount').textContent = userData.savings.toLocaleString() + '원';
             displayStockData();
             evaluatePortfolio();
             document.getElementById('loading').style.display = 'none';
@@ -480,6 +517,7 @@
             // 포트폴리오 요약
             var summaryHtml = '<h3>포트폴리오 요약</h3>' +
                           '<p>보유 현금: <span class="highlight">' + data.cashRemaining.toLocaleString() + '원</span></p>' +
+                          '<p>저축 금액: <span class="highlight">' + (data.savings || 0).toLocaleString() + '원</span></p>' +
                           '<p>주식 평가 금액: <span class="highlight">' + data.stockTotalValue.toLocaleString() + '원</span></p>' +
                           '<p>총 자산: <span class="highlight">' + data.totalAssetValue.toLocaleString() + '원</span></p>';
             
@@ -629,6 +667,61 @@
         
         // 로그인 페이지로 리다이렉트
         window.location.href = '/login.html';
+      }
+
+      // 저축 관리
+      async function handleSavings(action) {
+        const amount = parseInt(document.getElementById('savings-amount-input').value);
+        const resultDiv = document.getElementById('savings-result');
+        
+        if (isNaN(amount) || amount <= 0) {
+          resultDiv.className = 'result error';
+          resultDiv.textContent = '유효한 금액을 입력해주세요.';
+          resultDiv.style.display = 'block';
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/student/savings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              email: userEmail,
+              amount: amount,
+              action: action
+            })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            resultDiv.className = 'result success';
+            resultDiv.textContent = data.message;
+            
+            // 계좌 정보 즉시 업데이트
+            cashRemaining = data.student.cashRemaining;
+            userData.cashRemaining = data.student.cashRemaining;
+            userData.savings = data.student.savings;
+            
+            // 화면 업데이트
+            document.getElementById('remaining-budget').textContent = cashRemaining.toLocaleString() + '원';
+            document.getElementById('savings-amount').textContent = userData.savings.toLocaleString() + '원';
+            
+            // 입력 필드 초기화
+            document.getElementById('savings-amount-input').value = '';
+          } else {
+            resultDiv.className = 'result error';
+            resultDiv.textContent = data.error;
+          }
+          resultDiv.style.display = 'block';
+        } catch (error) {
+          resultDiv.className = 'result error';
+          resultDiv.textContent = '저축 처리 중 오류가 발생했습니다.';
+          resultDiv.style.display = 'block';
+          console.error('Error:', error);
+        }
       }
     </script>
   </body>

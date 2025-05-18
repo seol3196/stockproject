@@ -214,39 +214,37 @@
                 
                 // 보유 현금
                 var cell3 = row.insertCell(2);
-                cell3.textContent = student.cashRemaining.toLocaleString() + '원';
+                cell3.textContent = (student.cashRemaining || 0).toLocaleString() + '원';
+                
+                // 저축 금액
+                var cell4 = row.insertCell(3);
+                cell4.textContent = (student.savings || 0).toLocaleString() + '원';
                 
                 // 보유 주식 수
-                var cell4 = row.insertCell(3);
+                var cell5 = row.insertCell(4);
                 var stockCount = 0;
                 if (student.investments && student.investments.length > 0) {
                   student.investments.forEach(function(investment) {
-                    stockCount += investment.quantity;
+                    if (investment.quantity > 0) {
+                      stockCount += investment.quantity;
+                    }
                   });
                 }
-                cell4.textContent = stockCount + '주';
+                cell5.textContent = stockCount + '주';
                 
-                // 작업 버튼
-                var cell5 = row.insertCell(4);
+                // 관리 버튼
+                var cell6 = row.insertCell(5);
+                var buttonContainer = document.createElement('div');
+                buttonContainer.style.display = 'flex';
+                buttonContainer.style.gap = '5px';
                 
                 var viewButton = document.createElement('button');
                 viewButton.textContent = '상세 정보';
                 viewButton.className = 'button button-small';
-                viewButton.style.marginRight = '5px';
                 viewButton.dataset.email = student.email;
-
-                // onclick 대신 addEventListener 사용
-                viewButton.addEventListener('click', function() {
-                  console.log('상세 정보 버튼 클릭됨:', this.dataset.email);
-                  if (typeof window.viewStudentDetail === 'function') {
-                    window.viewStudentDetail(this.dataset.email);
-                  } else {
-                    console.error('viewStudentDetail 함수를 찾을 수 없습니다.');
-                    alert('시스템 오류가 발생했습니다. 페이지를 새로고침해 주세요.');
-                  }
-                });
-
-                cell5.appendChild(viewButton);
+                viewButton.onclick = function() {
+                  viewStudentDetail(this.dataset.email);
+                };
                 
                 var deleteButton = document.createElement('button');
                 deleteButton.textContent = '삭제';
@@ -255,7 +253,10 @@
                 deleteButton.onclick = function() {
                   deleteStudent(this.dataset.email);
                 };
-                cell5.appendChild(deleteButton);
+                
+                buttonContainer.appendChild(viewButton);
+                buttonContainer.appendChild(deleteButton);
+                cell6.appendChild(buttonContainer);
               });
               
               console.log('학생 목록 표시 완료');
@@ -348,7 +349,7 @@
               <th>이름</th>
               <th>보유 현금</th>
               <th>저축 금액</th>
-              <th>투자 현황</th>
+              <th>보유 주식 수</th>
               <th>관리</th>
             </tr>
           </thead>
@@ -745,34 +746,37 @@
           
           // 보유 현금
           var cell3 = row.insertCell(2);
-          cell3.textContent = student.cashRemaining.toLocaleString() + '원';
+          cell3.textContent = (student.cashRemaining || 0).toLocaleString() + '원';
           
           // 저축 금액
           var cell4 = row.insertCell(3);
-          cell4.textContent = student.savings.toLocaleString() + '원';
+          cell4.textContent = (student.savings || 0).toLocaleString() + '원';
           
           // 보유 주식 수
           var cell5 = row.insertCell(4);
           var stockCount = 0;
           if (student.investments && student.investments.length > 0) {
             student.investments.forEach(function(investment) {
-              stockCount += investment.quantity;
+              if (investment.quantity > 0) {
+                stockCount += investment.quantity;
+              }
             });
           }
           cell5.textContent = stockCount + '주';
           
-          // 작업 버튼
+          // 관리 버튼
           var cell6 = row.insertCell(5);
+          var buttonContainer = document.createElement('div');
+          buttonContainer.style.display = 'flex';
+          buttonContainer.style.gap = '5px';
           
           var viewButton = document.createElement('button');
           viewButton.textContent = '상세 정보';
           viewButton.className = 'button button-small';
-          viewButton.style.marginRight = '5px';
           viewButton.dataset.email = student.email;
           viewButton.onclick = function() {
             viewStudentDetail(this.dataset.email);
           };
-          cell6.appendChild(viewButton);
           
           var deleteButton = document.createElement('button');
           deleteButton.textContent = '삭제';
@@ -781,7 +785,10 @@
           deleteButton.onclick = function() {
             deleteStudent(this.dataset.email);
           };
-          cell6.appendChild(deleteButton);
+          
+          buttonContainer.appendChild(viewButton);
+          buttonContainer.appendChild(deleteButton);
+          cell6.appendChild(buttonContainer);
         });
       }
       

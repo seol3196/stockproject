@@ -12,6 +12,15 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+
+// 캐시 방지 미들웨어 추가
+app.use((req, res, next) => {
+  res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.header('Pragma', 'no-cache');
+  res.header('Expires', '0');
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // MongoDB Connection
@@ -239,6 +248,7 @@ app.get('/api/student/portfolio', async (req, res) => {
 
     // Calculate portfolio values
     const cashRemaining = student.cashRemaining;
+    const savings = student.savings;
     const stockValues = [];
     let stockTotalValue = 0;
 
@@ -257,10 +267,11 @@ app.get('/api/student/portfolio', async (req, res) => {
       }
     });
 
-    const totalAssetValue = cashRemaining + stockTotalValue;
+    const totalAssetValue = cashRemaining + savings + stockTotalValue;
 
     res.json({
       cashRemaining,
+      savings,
       stockValues,
       stockTotalValue,
       totalAssetValue
@@ -533,14 +544,6 @@ app.post('/api/student/savings', async (req, res) => {
     console.error('저축 처리 오류:', error);
     res.status(500).json({ error: '저축 처리 중 오류가 발생했습니다.' });
   }
-});
-
-// 브라우저 캐시 방지를 위한 미들웨어
-app.use((req, res, next) => {
-  res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.header('Pragma', 'no-cache');
-  res.header('Expires', '0');
-  next();
 });
 
 // Start server
