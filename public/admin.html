@@ -378,6 +378,7 @@
               <th>보유 현금</th>
               <th>저축 금액</th>
               <th>보유 주식 수</th>
+              <th>총 자산</th>
               <th>관리</th>
             </tr>
           </thead>
@@ -393,6 +394,7 @@
           <p>이름: <span id="detail-name"></span></p>
           <p>보유 현금: <span id="detail-cash" class="highlight"></span></p>
           <p>저축 금액: <span id="detail-savings" class="highlight"></span></p>
+          <p>총 자산: <span id="detail-total-assets" class="highlight"></span></p>
         </div>
         
         <div class="form-container">
@@ -761,6 +763,12 @@
         }
         tbody.innerHTML = '';
         
+        // 주식 가격 맵 생성
+        var stockPriceMap = {};
+        stockData.forEach(function(stock) {
+          stockPriceMap[stock.name] = stock.price;
+        });
+        
         studentData.forEach(function(student) {
           var row = tbody.insertRow();
           
@@ -783,17 +791,24 @@
           // 보유 주식 수
           var cell5 = row.insertCell(4);
           var stockCount = 0;
+          var totalStockValue = 0;
           if (student.investments && student.investments.length > 0) {
             student.investments.forEach(function(investment) {
               if (investment.quantity > 0) {
                 stockCount += investment.quantity;
+                totalStockValue += investment.quantity * (stockPriceMap[investment.stockName] || 0);
               }
             });
           }
           cell5.textContent = stockCount + '주';
           
-          // 관리 버튼
+          // 총 자산
           var cell6 = row.insertCell(5);
+          var totalAssets = (student.cashRemaining || 0) + (student.savings || 0) + totalStockValue;
+          cell6.textContent = totalAssets.toLocaleString() + '원';
+          
+          // 관리 버튼
+          var cell7 = row.insertCell(6);
           var buttonContainer = document.createElement('div');
           buttonContainer.style.display = 'flex';
           buttonContainer.style.gap = '5px';
@@ -816,7 +831,7 @@
           
           buttonContainer.appendChild(viewButton);
           buttonContainer.appendChild(deleteButton);
-          cell6.appendChild(buttonContainer);
+          cell7.appendChild(buttonContainer);
         });
       }
       
@@ -894,6 +909,8 @@
           stockPriceMap[stock.name] = stock.price;
         });
         
+        let totalStockValue = 0;
+        
         student.investments.forEach(function(investment) {
           if (investment.quantity > 0) {
             var row = tbody.insertRow();
@@ -915,8 +932,14 @@
             var cell4 = row.insertCell(3);
             var totalValue = currentPrice * investment.quantity;
             cell4.textContent = totalValue.toLocaleString() + '원';
+            
+            totalStockValue += totalValue;
           }
         });
+        
+        // 총 자산 계산 및 표시
+        const totalAssets = student.cashRemaining + student.savings + totalStockValue;
+        document.getElementById('detail-total-assets').textContent = totalAssets.toLocaleString() + '원';
       }
       
       // 주식 드롭다운 업데이트
