@@ -140,6 +140,18 @@
         width: 300px;
         margin-right: 10px;
       }
+      .export-button {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 10px 0;
+      }
+      .export-button:hover {
+        background-color: #218838;
+      }
     </style>
   </head>
   <body>
@@ -185,6 +197,16 @@
           
           // 선택한 버튼 활성화
           this.className += ' active';
+          
+          // CSV 다운로드 버튼 추가
+          var exportButton = document.createElement('button');
+          exportButton.textContent = 'CSV 다운로드';
+          exportButton.className = 'export-button';
+          exportButton.onclick = downloadCSV;
+          
+          // 버튼을 테이블 위에 추가
+          var studentTable = document.getElementById('student-list');
+          studentTable.parentNode.insertBefore(exportButton, studentTable);
           
           // 학생 정보 불러오기
           console.log('학생 데이터 로딩 시작');
@@ -339,6 +361,12 @@
 
         <div class="search-container">
           <input type="text" id="studentSearch" placeholder="학생 검색..." onkeyup="searchStudents()">
+        </div>
+        
+        <div class="button-container" style="margin: 10px 0;">
+          <button class="export-button" onclick="downloadCSV()">CSV 다운로드</button>
+          <input type="file" id="csvFile" accept=".csv" style="display: none;" onchange="uploadCSV(event)">
+          <button class="export-button" onclick="document.getElementById('csvFile').click()">CSV 업로드</button>
         </div>
         
         <div id="loading" class="loading">로딩 중...</div>
@@ -1159,6 +1187,61 @@
           resultDiv.style.display = 'block';
           console.error('Error:', error);
         }
+      }
+
+      // CSV 다운로드 함수
+      function downloadCSV() {
+        fetch(window.location.origin + '/api/admin/export-students')
+          .then(response => response.blob())
+          .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'students_investment_data.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+          })
+          .catch(error => {
+            console.error('CSV 다운로드 오류:', error);
+            alert('CSV 파일 다운로드 중 오류가 발생했습니다.');
+          });
+      }
+
+      // CSV 업로드 함수
+      function uploadCSV(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        document.getElementById('loading').style.display = 'block';
+
+        fetch(window.location.origin + '/api/admin/import-students', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('loading').style.display = 'none';
+          if (data.success) {
+            showResult(data.message, true);
+            // 학생 목록 새로고침
+            loadStudentData();
+          } else {
+            showResult(data.error, false);
+          }
+        })
+        .catch(error => {
+          document.getElementById('loading').style.display = 'none';
+          showResult('CSV 파일 업로드 중 오류가 발생했습니다.', false);
+          console.error('Error:', error);
+        });
+
+        // 파일 입력 초기화
+        event.target.value = '';
       }
     </script>
   </body>

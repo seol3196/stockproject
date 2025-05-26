@@ -3,6 +3,9 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const path = require('path');
+const { Parser } = require('json2csv');
+const multer = require('multer');
+const csv = require('csv-parse');
 require('dotenv').config();
 
 // Initialize Express app
@@ -336,20 +339,10 @@ app.delete('/api/admin/stocks/:name', async (req, res) => {
 // Admin route to get all students
 app.get('/api/admin/students', async (req, res) => {
   try {
-    console.log('학생 목록 조회 시작');
-    
-    // MongoDB 연결 상태 확인
-    if (!mongoose.connection.readyState) {
-      console.error('MongoDB 연결이 되어있지 않습니다.');
-      return res.status(500).json({ error: '데이터베이스 연결 오류' });
-    }
-    
     const students = await Student.find({}, 'email studentName cashRemaining savings investments');
-    console.log('조회된 학생 수:', students.length);
     res.json(students);
   } catch (error) {
     console.error('학생 목록 조회 오류:', error);
-    console.error('오류 상세:', error.stack);
     res.status(500).json({ error: '학생 데이터 조회 중 오류가 발생했습니다.' });
   }
 });
@@ -543,6 +536,184 @@ app.post('/api/student/savings', async (req, res) => {
   } catch (error) {
     console.error('저축 처리 오류:', error);
     res.status(500).json({ error: '저축 처리 중 오류가 발생했습니다.' });
+  }
+});
+
+// CSV 다운로드 엔드포인트
+app.get('/api/admin/export-students', async (req, res) => {
+  try {
+    // 모든 학생 정보 조회
+    const students = await Student.find({})
+      .populate('investments')
+      .lean();
+
+    // CSV 변환을 위한 데이터 가공
+    const csvData = students.map(student => {
+      // 기본 정보
+      const baseData = {
+        '학생ID': student.email,
+        '이름': student.studentName,
+        '현금': student.cashRemaining,
+        '저축': student.savings
+      };
+
+      // 투자 정보를 개별 컬럼으로 변환
+      student.investments.forEach(inv => {
+        if (inv.quantity > 0) {
+          baseData[`${inv.stockName}_수량`] = inv.quantity;
+        }
+      });
+
+      return baseData;
+    });
+
+    // CSV 필드 정의 (동적으로 생성)
+    const fields = ['학생ID', '이름', '현금', '저축'];
+    // 모든 주식 이름을 필드에 추가
+    const stockNames = [...new Set(students.flatMap(s => 
+      s.investments.map(inv => `${inv.stockName}_수량`)
+    ))];
+    fields.push(...stockNames);
+
+    const json2csvParser = new Parser({ 
+      fields,
+      delimiter: ',',
+      quote: '"',
+      header: true
+    });
+    
+    const csv = json2csvParser.parse(csvData);
+
+    // CSV 파일 다운로드 설정
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename=students_investment_data.csv');
+    
+    // CSV 데이터 전송
+    res.send(csv);
+  } catch (error) {
+    console.error('CSV 다운로드 오류:', error);
+    res.status(500).json({ error: 'CSV 파일 생성 중 오류가 발생했습니다.' });
+  }
+});
+
+// Multer 설정
+const upload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'text/csv' || file.mimetype === 'application/vnd.ms-excel') {
+      cb(null, true);
+    } else {
+      cb(new Error('CSV 파일만 업로드 가능합니다.'), false);
+    }
+  }
+});
+
+// CSV 업로드 엔드포인트
+app.post('/api/admin/import-students', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: '파일이 업로드되지 않았습니다.' });
+    }
+
+    const fileContent = req.file.buffer.toString('utf-8');
+    
+    // CSV 파싱
+    const records = [];
+    const parser = csv.parse({
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+      bom: true,
+      encoding: 'utf-8',
+      delimiter: ',',
+      quote: '"',
+      escape: '"',
+      relax_column_count: true
+    });
+
+    // Promise를 사용하여 파싱 완료 대기
+    await new Promise((resolve, reject) => {
+      parser.on('readable', function() {
+        let record;
+        while ((record = parser.read()) !== null) {
+          records.push(record);
+        }
+      });
+
+      parser.on('error', function(err) {
+        reject(new Error('CSV 파싱 오류: ' + err.message));
+      });
+
+      parser.on('end', function() {
+        resolve();
+      });
+
+      parser.write(fileContent);
+      parser.end();
+    });
+
+    // 데이터 검증 및 변환
+    const students = records.map(record => {
+      // 필수 필드 확인
+      if (!record['학생ID'] || !record['이름']) {
+        throw new Error('학생ID와 이름은 필수 입력 항목입니다.');
+      }
+
+      // 숫자 필드 변환
+      const cashRemaining = parseInt(record['현금']) || 300000;
+      const savings = parseInt(record['저축']) || 0;
+
+      // 투자 정보 추출
+      const investments = [];
+      Object.keys(record).forEach(key => {
+        if (key.endsWith('_수량')) {
+          const stockName = key.replace('_수량', '');
+          const quantity = parseInt(record[key]) || 0;
+          if (quantity > 0) {
+            investments.push({
+              stockName,
+              quantity
+            });
+          }
+        }
+      });
+
+      return {
+        email: record['학생ID'],
+        studentName: record['이름'],
+        cashRemaining,
+        savings,
+        investments
+      };
+    });
+
+    // 기존 데이터 업데이트 또는 새로 추가
+    for (const student of students) {
+      await Student.findOneAndUpdate(
+        { email: student.email },
+        { 
+          $set: {
+            studentName: student.studentName,
+            cashRemaining: student.cashRemaining,
+            savings: student.savings,
+            investments: student.investments
+          }
+        },
+        { upsert: true, new: true }
+      );
+    }
+
+    // 업데이트된 전체 학생 목록 조회
+    const updatedStudents = await Student.find({}, 'email studentName cashRemaining savings investments');
+    
+    res.json({
+      success: true,
+      message: `${students.length}명의 학생 데이터가 성공적으로 업로드되었습니다.`,
+      students: updatedStudents
+    });
+  } catch (error) {
+    console.error('CSV 업로드 오류:', error);
+    res.status(500).json({ error: error.message || 'CSV 파일 처리 중 오류가 발생했습니다.' });
   }
 });
 
