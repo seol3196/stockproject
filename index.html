@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포트폴리오 요약</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 400px;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>내 포트폴리오 요약</h1>
+    <div class="chart-container">
+        <canvas id="portfolioChart"></canvas>
+    </div>
+
+    <script>
+        // 예시 데이터 (실제로는 서버에서 데이터를 가져와야 합니다)
+        const data = {
+            labels: ['주식A', '주식B', '주식C', '현금', '저축액'],
+            datasets: [{
+                data: [30, 20, 15, 25, 10],
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
+            }]
+        };
+
+        const ctx = document.getElementById('portfolioChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: data,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: '포트폴리오 요약'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

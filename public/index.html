@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <title>주식투자 프로젝트</title>
     <link rel="icon" href="https://www.google.com/images/product/sheets_32dp.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -171,8 +173,13 @@
       </div>
       
       <div id="tab-portfolio" class="tab-content">
-        <div class="portfolio-summary" id="portfolio-summary">
-          <!-- 포트폴리오 요약 정보 -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div class="portfolio-summary" id="portfolio-summary" style="flex: 1;">
+            <!-- 포트폴리오 요약 정보 -->
+          </div>
+          <div class="chart-container" style="width: 400px; height: 400px; margin-left: 20px;">
+            <canvas id="portfolioChart"></canvas>
+          </div>
         </div>
         
         <h2>내 보유 주식</h2>
@@ -522,6 +529,72 @@
                           '<p>총 자산: <span class="highlight">' + data.totalAssetValue.toLocaleString() + '원</span></p>';
             
             document.getElementById('portfolio-summary').innerHTML = summaryHtml;
+            
+            // 원그래프 데이터 준비
+            const chartData = {
+              labels: [],
+              data: []
+            };
+            
+            // 주식 데이터 추가
+            data.stockValues.forEach(stock => {
+              chartData.labels.push(stock.stockName);
+              chartData.data.push(stock.value);
+            });
+            
+            // 현금과 저축액 추가
+            chartData.labels.push('현금');
+            chartData.data.push(data.cashRemaining);
+            chartData.labels.push('저축액');
+            chartData.data.push(data.savings || 0);
+            
+            // Chart.js 플러그인 등록
+            Chart.register(ChartDataLabels);
+            
+            // 기존 차트 파괴
+            const existingChart = Chart.getChart('portfolioChart');
+            if (existingChart) {
+              existingChart.destroy();
+            }
+            
+            // 원그래프 생성
+            const ctx = document.getElementById('portfolioChart').getContext('2d');
+            new Chart(ctx, {
+              type: 'pie',
+              data: {
+                labels: chartData.labels,
+                datasets: [{
+                  data: chartData.data,
+                  backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                    '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
+                  ]
+                }]
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'right',
+                  },
+                  title: {
+                    display: true,
+                    text: '자산 분포'
+                  },
+                  datalabels: {
+                    color: '#fff',
+                    font: {
+                      weight: 'bold'
+                    },
+                    formatter: function(value, context) {
+                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                      const percentage = Math.round((value / total) * 100);
+                      return percentage + '%';
+                    }
+                  }
+                }
+              }
+            });
             
             // 포트폴리오 테이블
             var tbody = document.getElementById('portfolio-body');
